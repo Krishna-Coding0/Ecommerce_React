@@ -1,0 +1,38 @@
+.receipt-container {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+  }
+  
+  .receipt-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .receipt-item-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .receipt-item {
+    border-bottom: 1px solid #ddd;
+    padding: 10px 0;
+  }
+  
+  .receipt-item-title {
+    font-size: 1.2em;
+    margin: 0;
+  }
+  
+  .receipt-item-details {
+    margin-bottom: 10px;
+  }
+  
+  .receipt-total {
+    font-weight: bold;
+  }
+  
+  .empty-receipt-message {
+    text-align: center;
+  }
+  
