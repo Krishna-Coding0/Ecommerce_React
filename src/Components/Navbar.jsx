@@ -21,12 +21,14 @@ export default function Navbar() {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const onChange = (event) => {
-    setValue(event.target.value);
+    const searchValue = event.target.value.toLowerCase();
+    setValue(searchValue);
+    
     const products = JSON.parse(localStorage.getItem('products'));
 
-    if (event.target.value.trim() !== '') {
+    if (searchValue.trim() !== '') {
       const filtered = products.filter(product => 
-        product.Name.toLowerCase().includes(event.target.value.toLowerCase())
+        product.Name.toLowerCase().startsWith(searchValue)
       );
       setFilteredProducts(filtered);
     } else {
@@ -108,16 +110,19 @@ export default function Navbar() {
                     onChange={onChange}
                     value={value}
                   />
+                  {/* <button type="button" className="btn btn-outline-success">Search</button> */}
                 </form>
               )}
               {filteredProducts.length > 0 && (
-                <div className="dropdown-content">
+                <ul className="dropdown-content list-group">
                   {filteredProducts.map((product, index) => (
-                    <li key={index}>
-                      <div>{product.Name}</div>
+                    <li key={index} className="list-group-item">
+                      <NavLink to={`/productdetail/${product.categoryName}/${product.id}`}>
+                        {product.Name}
+                      </NavLink>
                     </li>
                   ))}
-                </div>
+                </ul>
               )}
             </li>
             <li className="nav-item">

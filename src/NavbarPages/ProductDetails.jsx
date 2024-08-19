@@ -1,16 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import {
-  getFirestore,
-  collection,
-  query,
-  where,
-  getDocs,
-} from "firebase/firestore";
+import { getFirestore, collection, doc, getDoc ,where ,getDocs, query} from "firebase/firestore";
 import firestoreApp from "../Authentication/FirestoreApp";
 import { addItem } from "../ReduxStore/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
-import {addtoCart} from "../FirestoreDB/AddtoCart";
+import { addtoCart } from "../FirestoreDB/AddtoCart";
 import { toast } from "react-toastify";
 
 const db = getFirestore(firestoreApp);
@@ -39,7 +33,7 @@ export default function ProductDetails() {
         console.log("Product to be added to cart", updatedProduct);
         dispatch(addItem(updatedProduct));
         setIsInCart(true);
-        addtoCart(updatedProduct);
+        await addtoCart(updatedProduct);
       } else {
         console.error("Product ID is missing or invalid.");
       }
@@ -51,26 +45,20 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);
-      const collectionPath = `products/${categoryName}/${categoryName}`;
-      const collectionRef = collection(db, collectionPath);
-      const q = query(collectionRef, where("ID", "==", id));
-
-      console.log("Query path:", collectionPath);
-      console.log("Query ID:", id);
 
       try {
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          const docSnap = querySnapshot.docs[0];
-          const productData = docSnap.data();
+        const docRef = doc(db, `products/${categoryName}/${categoryName}/${id}`);
+        console.log('this is doc',docRef);
+        const docSnap = await getDoc(docRef);
 
-          if (productData) {
-            setProduct({ ...productData, ID: docSnap.id });
-            const cartRef = collection(db, "cart");
-            const cartQuery = query(cartRef, where("id", "==", docSnap.id));
-            const cartSnapshot = await getDocs(cartQuery);
-            setIsInCart(!cartSnapshot.empty);
-          }
+        if (docSnap.exists()) {
+          const productData = docSnap.data();
+          setProduct({ ...productData, ID: docSnap.id });
+
+          const cartRef = collection(db, "cart");
+          const cartQuery = query(cartRef, where("id", "==", docSnap.id));
+          const cartSnapshot = await getDocs(cartQuery);
+          setIsInCart(!cartSnapshot.empty);
         } else {
           console.log("No such document with ID:", id);
         }
@@ -83,8 +71,6 @@ export default function ProductDetails() {
 
     fetchProduct();
   }, [categoryName, id]);
-
-  console.log(product);
 
   return (
     <div className="container my-5">
