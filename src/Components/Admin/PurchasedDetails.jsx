@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import { fetchPurchasedData } from "../../FirestoreDB/AdminQuery";
-// import { Link } from "react-router-dom";
-
 
 function PurchasedDetails() {
-  const [purchasedData, setPurchasedData] = useState([]);
+  const [purchasedData, setPurchasedData] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -12,7 +10,20 @@ function PurchasedDetails() {
     const getData = async () => {
       try {
         const fetchedPurchasedData = await fetchPurchasedData();
-        setPurchasedData(fetchedPurchasedData);
+        if (Array.isArray(fetchedPurchasedData)) {
+          const groupedData = fetchedPurchasedData.reduce((acc, purchase) => {
+            const { email } = purchase;
+            if (!acc[email]) {
+              acc[email] = [];
+            }
+            acc[email].push(purchase);
+            return acc;
+          }, {});
+
+          setPurchasedData(groupedData);
+        } else {
+          setError("Unexpected data structure received");
+        }
       } catch (err) {
         setError("Failed to fetch purchased data");
       } finally {
@@ -34,10 +45,11 @@ function PurchasedDetails() {
   return (
     <div>
       <h2 className="text-center">Purchased Details</h2>
-      {purchasedData.length > 0 ? (
-        purchasedData.map((purchase, index) => (
+      
+      {Object.keys(purchasedData).length > 0 ? (
+        Object.keys(purchasedData).map((email, index) => (
           <div key={index} className="mb-4">
-            <h4>User: {purchase.email}</h4>
+            <h4>User: {email}</h4>
             <table className="table table-bordered">
               <thead>
                 <tr>
@@ -47,16 +59,18 @@ function PurchasedDetails() {
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>{purchase.name}</td>
-                  <td>{purchase.quantity}</td>
-                  <td>${purchase.price}</td>
-                </tr>
+                {purchasedData[email].map((purchase, i) => (
+                  <tr key={i}>
+                    <td>{purchase.name}</td>
+                    <td>{purchase.quantity}</td>
+                    <td>${purchase.price}</td>
+                  </tr>
+                ))}
                 <tr>
                   <td colSpan="2" className="text-right font-weight-bold">
                     Total:
                   </td>
-                  <td className="font-weight-bold">${purchase.totalPrice}</td>
+                  <td className="font-weight-bold">${purchasedData[email].reduce((total, purchase) => total + purchase.totalPrice, 0)}</td>
                 </tr>
               </tbody>
             </table>

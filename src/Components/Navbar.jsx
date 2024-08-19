@@ -1,4 +1,4 @@
-import {useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { getAuth, onAuthStateChanged, signOut } from 'firebase/auth';
@@ -7,18 +7,32 @@ import firestoreApp from '../Authentication/FirestoreApp';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { FaShoppingCart } from 'react-icons/fa';
-import { resetitems} from '../ReduxStore/cartSlice';
-
+import { resetitems } from '../ReduxStore/cartSlice';
 
 const auth = getAuth(firestoreApp);
 
 export default function Navbar() {
   const navigate = useNavigate();
-  const status=useSelector((state)=>state.cart.isAdmin)
+  const status = useSelector((state) => state.cart.isAdmin);
   const user = useSelector((state) => state.user);
   const cartItems = useSelector((state) => state.cart.items);
   const dispatch = useDispatch();
+  const [value, setValue] = useState('');
+  const [filteredProducts, setFilteredProducts] = useState([]);
 
+  const onChange = (event) => {
+    setValue(event.target.value);
+    const products = JSON.parse(localStorage.getItem('products'));
+
+    if (event.target.value.trim() !== '') {
+      const filtered = products.filter(product => 
+        product.Name.toLowerCase().includes(event.target.value.toLowerCase())
+      );
+      setFilteredProducts(filtered);
+    } else {
+      setFilteredProducts([]);
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -32,13 +46,9 @@ export default function Navbar() {
     return () => unsubscribe();
   }, [dispatch]);
 
-  
-
-
-
   const handleLogout = async () => {
     try {
-      dispatch(resetitems())
+      dispatch(resetitems());
       await signOut(auth);
       toast.success('Logged Out successfully!');
       navigate('/');
@@ -47,12 +57,10 @@ export default function Navbar() {
     }
   };
 
-
-
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
-      <NavLink className="navbar-brand" to={status ? '/' : '/'}>
+        <NavLink className="navbar-brand" to={status ? '/' : '/'}>
           {status ? 'Admin' : 'E-commerce'}
         </NavLink>
         <button
@@ -70,21 +78,17 @@ export default function Navbar() {
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
             <li className="nav-item">
               <NavLink className="nav-link active" aria-current="page" to={status ? '/UserDetails' : '/'}>
-                
                 {status ? 'Users' : 'Home'}
               </NavLink>
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to={status ? '/StockDetails' : '/Shop'}>
-                
                 {status ? 'Stocks' : 'Shop'}
-                
               </NavLink>
             </li>
             <li className="nav-item">
               <NavLink className="nav-link" to={status ? '/PurchasedDetails' : '/Contact'}>
-              {status ? 'Purchased' : 'Contact'}
-
+                {status ? 'Purchased' : 'Contact'}
               </NavLink>
             </li>
           </ul>
@@ -94,19 +98,27 @@ export default function Navbar() {
 
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             <li className="nav-item">
-              {status ? '' : <form className="d-flex ms-2">
-                <input
-                  className="form-control me-2"
-                  type="search"
-                  placeholder="Search products"
-                  aria-label="Search"
+              {!status && (
+                <form className="d-flex ms-2">
+                  <input
+                    className="form-control me-2"
+                    type="search"
+                    placeholder="Search products"
+                    aria-label="Search"
+                    onChange={onChange}
+                    value={value}
                   />
-                <button className="btn btn-outline-success">
-                  Search
-                </button>
-              </form>}
-              
-              
+                </form>
+              )}
+              {filteredProducts.length > 0 && (
+                <div className="dropdown-content">
+                  {filteredProducts.map((product, index) => (
+                    <li key={index}>
+                      <div>{product.Name}</div>
+                    </li>
+                  ))}
+                </div>
+              )}
             </li>
             <li className="nav-item">
               {user && user.name ? (
@@ -120,17 +132,18 @@ export default function Navbar() {
               )}
             </li>
             <li className="nav-item position-relative">
-                {status ? '' : <NavLink className="nav-link" to="/Cart">
-                <FaShoppingCart />
-                <span
-                  className={`position-absolute top-0 start-100 translate-middle badge rounded-pill ${cartItems.length > 0 ? 'bg-danger' : 'bg-secondary'}`}
-                  style={{ fontSize: '0.75em' }}
-                >
-                  {cartItems.length > 0 ? cartItems.length : '0'}
-                  <span className="visually-hidden">items in cart</span>
-                </span>
-              </NavLink>}
-              
+              {!status && (
+                <NavLink className="nav-link" to="/Cart">
+                  <FaShoppingCart />
+                  <span
+                    className={`position-absolute top-0 start-100 translate-middle badge rounded-pill ${cartItems.length > 0 ? 'bg-danger' : 'bg-secondary'}`}
+                    style={{ fontSize: '0.75em' }}
+                  >
+                    {cartItems.length > 0 ? cartItems.length : '0'}
+                    <span className="visually-hidden">items in cart</span>
+                  </span>
+                </NavLink>
+              )}
             </li>
           </ul>
         </div>

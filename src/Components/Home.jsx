@@ -43,6 +43,9 @@ const fetchProducts = async () => {
         })
       );
       allProducts = [...allProducts, ...subCollectionProducts];
+      localStorage.setItem('products', JSON.stringify(allProducts));
+
+      // console.log(allProducts);
     }
   }
 
@@ -74,7 +77,7 @@ const Home = () => {
         toast.error('Please Login to Add Product to Cart');
       }
     },
-    [dispatch, userstatus, cartItems] // Dependencies array
+    [dispatch, userstatus, cartItems] 
   );
 
   if (isLoading) {
