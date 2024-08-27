@@ -5,8 +5,9 @@ const cartSlice = createSlice({
   initialState: 
   {
     items: [],
+    temp:[],
     userloggedIn: false,
-    isAdmin: false
+    isAdmin: false,
   },
   reducers: 
   {
@@ -15,6 +16,7 @@ const cartSlice = createSlice({
       if (!existingItem) {
         state.items.push(action.payload);
       }
+      
     },
     userstatus: (state) => 
       {
@@ -38,10 +40,17 @@ const cartSlice = createSlice({
         state.items = [];
         // state.userloggedIn = false;
         state.isAdmin = false; 
+      },
+      Tempdata:(state,action)=>{
+        console.log("Payload:", action.payload);
+        state.temp=[...state.temp, action.payload]
+        console.log("Updated Temp:", state.temp);
+      },
+      resetTemp:(state)=>{
+        state.temp=[]
       }
-      
   },
 });
 
-export const { addItem, removeItem ,userstatus, adminstatus, resetitems , resetadminstatus } = cartSlice.actions;
+export const {resetTemp, addItem, removeItem ,userstatus, adminstatus, resetitems , resetadminstatus ,Tempdata} = cartSlice.actions;
 export default cartSlice;

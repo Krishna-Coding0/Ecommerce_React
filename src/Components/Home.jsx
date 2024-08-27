@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { addItem } from "../ReduxStore/cartSlice";
+import { addItem ,Tempdata } from "../ReduxStore/cartSlice";
 import { addtoCart } from '../FirestoreDB/AddtoCart';
 import "./Home.css";
 import './Homestyles.css';
@@ -61,7 +61,7 @@ const Home = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
   });
-  console.log('what is ',email)
+  // console.log('what is ',email)
 
   const handleAddToCart = useCallback(
     async (product) => {
@@ -74,7 +74,13 @@ const Home = () => {
           toast.info("Product is already in the cart");
         }
       } else {
-        toast.error('Please Login to Add Product to Cart');
+        if (!cartItems.includes(product.id))
+        {
+          dispatch(Tempdata(product))
+          dispatch(addItem(product))
+          
+        }
+        toast.error('Product is Added ,Please Login');
       }
     },
     [dispatch, userstatus, cartItems] 

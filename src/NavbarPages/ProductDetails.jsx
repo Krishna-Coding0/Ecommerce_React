@@ -2,10 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { getFirestore, collection, doc, getDoc ,where ,getDocs, query} from "firebase/firestore";
 import firestoreApp from "../Authentication/FirestoreApp";
-import { addItem } from "../ReduxStore/cartSlice";
+import { addItem,Tempdata } from "../ReduxStore/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { addtoCart } from "../FirestoreDB/AddtoCart";
 import { toast } from "react-toastify";
+
 
 const db = getFirestore(firestoreApp);
 
@@ -16,6 +17,8 @@ export default function ProductDetails() {
   const [isInCart, setIsInCart] = useState(false);
   const dispatch = useDispatch();
   const userstatus = useSelector((state) => state.cart.userloggedIn);
+  const cartItems = useSelector((state) => state.cart.items.map(item => item.id));
+
 
   const updatedProduct = useMemo(() => {
     if (product && product.ID) {
@@ -28,6 +31,7 @@ export default function ProductDetails() {
   }, [product]);
 
   const handleAddToCart = async () => {
+    
     if (userstatus) {
       if (updatedProduct) {
         console.log("Product to be added to cart", updatedProduct);
@@ -38,7 +42,13 @@ export default function ProductDetails() {
         console.error("Product ID is missing or invalid.");
       }
     } else {
-      toast.error("Please Login to Add Product to Cart");
+      if (!cartItems.includes(product.id))
+        {
+          dispatch(Tempdata(product))
+          dispatch(addItem(product))
+          
+        }
+        toast.error('Product is Added ,Please Login');
     }
   };
 

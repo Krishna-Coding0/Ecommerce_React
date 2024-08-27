@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import { addItem } from "../ReduxStore/cartSlice";
+import { addItem, Tempdata } from "../ReduxStore/cartSlice";
 import { addtoCart } from '../FirestoreDB/AddtoCart';
 
 const db = getFirestore(firestoreApp);
@@ -31,16 +31,22 @@ export default function Shop() {
       if (userstatus) {
         if (!cartItems.includes(product.id)) {
           dispatch(addItem(product));
-          addtoCart(product);
-          toast.success("Product Added From Shop", selectedCategory);
+          await addtoCart(product);  // Ensure this function is asynchronous
+          toast.success("Product Added From Shop", { autoClose: 2000 });
         } else {
           toast.info("Product is already in the cart");
         }
       } else {
-        toast.error('Please Login to Add Product to Cart');
+        if (!cartItems.includes(product.id)) {
+          dispatch(Tempdata(product));
+          dispatch(addItem(product));
+          toast.error('Product is Added, Please Login', { autoClose: 2000 });
+        } else {
+          toast.info("Product is already in the cart");
+        }
       }
     },
-    [dispatch, userstatus, cartItems, selectedCategory]
+    [dispatch, userstatus, cartItems]
   );
 
   const { data: products = [], error, isLoading } = useQuery({

@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { FaShoppingCart } from 'react-icons/fa';
 import { resetitems } from '../ReduxStore/cartSlice';
 
+// Initialize Firebase Auth
 const auth = getAuth(firestoreApp);
 
 export default function Navbar() {
@@ -20,14 +21,15 @@ export default function Navbar() {
   const [value, setValue] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
 
+  // Handle search input changes
   const onChange = (event) => {
     const searchValue = event.target.value.toLowerCase();
     setValue(searchValue);
-    
+
     const products = JSON.parse(localStorage.getItem('products'));
 
     if (searchValue.trim() !== '') {
-      const filtered = products.filter(product => 
+      const filtered = products.filter((product) =>
         product.Name.toLowerCase().startsWith(searchValue)
       );
       setFilteredProducts(filtered);
@@ -36,6 +38,7 @@ export default function Navbar() {
     }
   };
 
+  // Handle Firebase Auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
@@ -48,6 +51,7 @@ export default function Navbar() {
     return () => unsubscribe();
   }, [dispatch]);
 
+  // Handle logout
   const handleLogout = async () => {
     try {
       dispatch(resetitems());
@@ -62,24 +66,29 @@ export default function Navbar() {
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light">
       <div className="container-fluid">
+        {/* Navbar brand/logo */}
         <NavLink className="navbar-brand" to={status ? '/' : '/'}>
           {status ? 'Admin' : 'E-commerce'}
         </NavLink>
+
+        {/* Navbar toggler for small screens */}
         <button
           className="navbar-toggler"
           type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
+          data-bs-toggle="collapse"   // Use 'data-bs-toggle' instead of 'data-toggle' for Bootstrap 5
+          data-bs-target="#navbarSupportedContent" // Ensure this ID matches the collapse div ID
+          aria-controls="navbarSupportedContent"
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className="collapse navbar-collapse" id="navbarNav">
+
+        {/* Collapsible navbar content */}
+        <div className="collapse navbar-collapse" id="navbarSupportedContent">
           <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-            <li className="nav-item">
-              <NavLink className="nav-link active" aria-current="page" to={status ? '/UserDetails' : '/'}>
+            <li className="nav-item active">
+              <NavLink className="nav-link" aria-current="page" to={status ? '/UserDetails' : '/'}>
                 {status ? 'Users' : 'Home'}
               </NavLink>
             </li>
@@ -94,10 +103,13 @@ export default function Navbar() {
               </NavLink>
             </li>
           </ul>
+
+          {/* Welcome message */}
           <div className="navbar-text mx-auto">
             {user && user.name ? `Welcome, ${user.name}` : ''}
           </div>
 
+          {/* Right-aligned navbar items */}
           <ul className="navbar-nav ms-auto mb-2 mb-lg-0">
             <li className="nav-item">
               {!status && (
@@ -110,7 +122,6 @@ export default function Navbar() {
                     onChange={onChange}
                     value={value}
                   />
-                  {/* <button type="button" className="btn btn-outline-success">Search</button> */}
                 </form>
               )}
               {filteredProducts.length > 0 && (
@@ -125,6 +136,8 @@ export default function Navbar() {
                 </ul>
               )}
             </li>
+
+            {/* Login/Logout link */}
             <li className="nav-item">
               {user && user.name ? (
                 <NavLink className="nav-link" to="/" onClick={handleLogout}>
@@ -136,6 +149,8 @@ export default function Navbar() {
                 </NavLink>
               )}
             </li>
+
+            {/* Cart icon with item count */}
             <li className="nav-item position-relative">
               {!status && (
                 <NavLink className="nav-link" to="/Cart">

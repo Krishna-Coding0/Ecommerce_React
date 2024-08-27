@@ -3,12 +3,13 @@ import { useState } from 'react';
 import ErrorModal from './ErrorModal'; 
 import { NavLink, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useDispatch } from 'react-redux';
+import { useDispatch,useSelector } from 'react-redux';
 import { setUser } from '../ReduxStore/userloginslice';
-import { adminstatus, userstatus, addItem } from "../ReduxStore/cartSlice";
+import { adminstatus, userstatus, addItem ,resetTemp} from "../ReduxStore/cartSlice";
 import IsAdmin from './IsAdmin'; 
 import { fetchUserCart } from "../NavbarPages/FetchCartApi";
 import firestoreApp from './FirestoreApp';
+import {addtoCart} from '../FirestoreDB/AddtoCart';
 
 const auth = getAuth(firestoreApp);
 const provider = new GoogleAuthProvider();
@@ -16,10 +17,11 @@ const provider = new GoogleAuthProvider();
 export default function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const temp = useSelector((state) => state.cart.temp);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-
+  console.log(temp);
   const handleEmailSignIn = async (event) => {
     event.preventDefault();
     try {
@@ -54,12 +56,18 @@ export default function Login() {
       const user = result.user;
       // console.log('Google user:', user);
       dispatch(setUser({ uid: user.uid, name: user.displayName, email: user.email }));
+      
       // await addUser(user.displayName, user.email);
       if (await IsAdmin(user.email)) {
         dispatch(adminstatus());
       }
       else{
         dispatch(userstatus());
+          for (const item of temp) {
+            console.log(item);
+            await addtoCart(user.email, item);
+            dispatch(addItem(item));
+        }
       }
       const data=await fetchUserCart()
       console.log('this the data fetched :',data)
@@ -67,6 +75,7 @@ export default function Login() {
         dispatch(addItem(item.product));
       });
       toast.success('Logged in with Google successfully!');
+      dispatch(resetTemp())
       navigate('/');
     } catch (error) {
       // setFormData({ ...formData, message: error.message });
